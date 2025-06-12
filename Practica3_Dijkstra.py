@@ -1,12 +1,12 @@
+import matplotlib.pyplot as plt
+import networkx as nx
 import heapq
 
-def dijkstra(grafo, inicio):
+def dijkstra_visual(grafo, inicio):
     distancias = {nodo: float('inf') for nodo in grafo}
     distancias[inicio] = 0
     visitados = set()
     cola = [(0, inicio)]
-
-    print(f"\nInicio en el nodo: {inicio}\n")
 
     while cola:
         distancia_actual, nodo_actual = heapq.heappop(cola)
@@ -14,7 +14,6 @@ def dijkstra(grafo, inicio):
         if nodo_actual in visitados:
             continue
 
-        print(f"Visitando nodo {nodo_actual} con distancia acumulada {distancia_actual}")
         visitados.add(nodo_actual)
 
         for vecino, peso in grafo[nodo_actual].items():
@@ -22,22 +21,38 @@ def dijkstra(grafo, inicio):
             if nueva_distancia < distancias[vecino]:
                 distancias[vecino] = nueva_distancia
                 heapq.heappush(cola, (nueva_distancia, vecino))
-                print(f" → Se actualiza distancia de {vecino} a {nueva_distancia}")
-        
-        print(f"Estado actual de distancias: {distancias}\n")
 
-    print("Distancias finales más cortas desde el nodo", inicio)
-    for nodo, distancia in distancias.items():
-        print(f"{inicio} → {nodo} = {distancia}")
+    return distancias
 
-# Ejemplo de grafo
+def mostrar_grafo(grafo, distancias=None):
+    G = nx.DiGraph()
+    for nodo in grafo:
+        for vecino, peso in grafo[nodo].items():
+            G.add_edge(nodo, vecino, weight=peso)
+
+    pos = nx.spring_layout(G)
+    pesos = nx.get_edge_attributes(G, 'weight')
+    
+    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=1500, font_size=10, font_weight='bold', arrows=True)
+    nx.draw_networkx_edge_labels(G, pos, edge_labels=pesos)
+    
+    if distancias:
+        etiquetas = {nodo: f"{nodo}\n{distancias[nodo]}" for nodo in G.nodes}
+        nx.draw_networkx_labels(G, pos, labels=etiquetas)
+
+    plt.title("Grafo y distancias desde nodo inicial")
+    plt.show()
+
+# Mismo grafo de antes
 grafo = {
     'A': {'B': 5, 'C': 1},
-    'B': {'A': 5, 'C': 2, 'D': 1},
-    'C': {'A': 1, 'B': 2, 'D': 4, 'E': 8},
-    'D': {'B': 1, 'C': 4, 'E': 3, 'F': 6},
-    'E': {'C': 8, 'D': 3},
-    'F': {'D': 6}
+    'B': {'C': 2, 'D': 1},
+    'C': {'D': 4, 'E': 8},
+    'D': {'E': 3, 'F': 6},
+    'E': {},
+    'F': {}
 }
 
-dijkstra(grafo, 'A')
+inicio = 'A'
+distancias = dijkstra_visual(grafo, inicio)
+mostrar_grafo(grafo, distancias)
